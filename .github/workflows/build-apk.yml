@@ -1,4 +1,4 @@
-name: Build Flash Eats APK
+name: Build Flash Eats Android
 
 on:
   push:
@@ -29,11 +29,28 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.13"
-      - name: Build release APK
-        run: gradle --no-daemon :app:assembleRelease
+      - name: Build release APK and App Bundle
+        run: gradle --no-daemon :app:assembleRelease :app:bundleRelease
       - name: Upload unsigned APK
         uses: actions/upload-artifact@v4
         with:
           name: flash-eats-unsigned-apk
           path: app/build/outputs/apk/release/app-release-unsigned.apk
+          if-no-files-found: error
+      - name: Upload unsigned App Bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: flash-eats-unsigned-aab
+          path: app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+      - name: Prepare Android signing tools
+        run: |
+          mkdir -p android-signing-tools
+          cp "$ANDROID_HOME/build-tools/36.0.0/lib/apksigner.jar" android-signing-tools/
+          cp "$ANDROID_HOME/build-tools/36.0.0/zipalign" android-signing-tools/
+      - name: Upload Android signing tools
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-signing-tools-36
+          path: android-signing-tools/
           if-no-files-found: error
